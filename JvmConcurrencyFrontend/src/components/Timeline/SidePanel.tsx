@@ -96,9 +96,9 @@ function SidePanel() {
             <Select
               id={"tabs"}
               value={selectedTab}
-              onChange={(e) =>
-                setSelectedTab(e.currentTarget.getAttribute("value") as string)
-              }
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                setSelectedTab(e.target.value);
+              }}
             >
               <option value="osThreads">OS Threads</option>
               <option value="virtualThreads">Virtual Threads</option>
