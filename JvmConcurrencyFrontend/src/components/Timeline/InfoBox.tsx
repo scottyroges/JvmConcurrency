@@ -324,7 +324,9 @@ function InfoBox() {
       inner = getInfoBoxForRequest(elementToShow, context.scenarioLogs);
       break;
     default:
-      inner = <div></div>;
+      inner = (
+        <div>Hover over or select an element to see more information.</div>
+      );
   }
 
   return (

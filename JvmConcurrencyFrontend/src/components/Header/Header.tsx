@@ -7,7 +7,7 @@ function Header() {
         <div className={styles.logoWrapper}>
           <span className={styles.made}>made by</span>
           <a
-            href="https://github.com/scottyroges"
+            href="https://github.com/scottyroges/JvmConcurrency"
             target="_blank"
             className={styles.scott}
           >

@@ -3,6 +3,8 @@
   background-color: var(--color-highlight);
   transition: height 400ms;
   padding: 0px 110px;
+  top: 0;
+  position: sticky;
 
   @media (max-width: 37.5rem) {
     padding: 0px 20px;
