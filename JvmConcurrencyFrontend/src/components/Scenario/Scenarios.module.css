@@ -1,26 +1,26 @@
 .scenarios-wrapper {
   display: flex;
   flex-direction: row;
-  gap: 41px;
+  gap: 20px;
   overflow: auto;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--color-grey-500);
 
-  @media (max-width: 37.5rem) {
+  @media (max-width: 45rem) {
     display: none;
   }
 }
 
 .box {
   display: block;
-  min-width: 250px;
+  min-width: 120px;
   height: 75px;
   border: 1px solid var(--color-grey-100);
   border-radius: 10px;
   background-color: var(--color-secondary);
   color: var(--color-grey-800);
   font-weight: var(--font-weight-body-bold);
-  font-size: calc(16rem / 16);
+  font-size: calc(14rem / 16);
   text-decoration: none;
 
   div {

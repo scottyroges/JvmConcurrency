@@ -7,9 +7,12 @@ function Analysis({ selectedScenarioId }: { selectedScenarioId: string }) {
   const markdown = useReadMarkdown(selectedScenarioId);
   return (
     <>
-      <h2 className={styles.heading}>Analysis</h2>
+      <h2 id="analysis" className={styles.heading}>
+        Analysis
+      </h2>
       <div className={styles.wrapper}>
         <TableOfContent selectedScenarioId={selectedScenarioId} />
+        <div className={styles.spacer}></div>
         <Markdown className={styles.markdown}>{markdown}</Markdown>
       </div>
     </>

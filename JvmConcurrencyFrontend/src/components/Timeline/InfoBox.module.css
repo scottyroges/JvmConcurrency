@@ -10,7 +10,7 @@
     margin-bottom: 5px;
   }
 
-  @media (max-width: 37.5rem) {
+  @media (max-width: 45rem) {
     min-height: 0;
     margin-bottom: 250px;
   }

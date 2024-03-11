@@ -1,4 +1,6 @@
 .nav {
+  isolation: isolate;
+  z-index: 1;
   height: 12px;
   background-color: var(--color-highlight);
   transition: height 400ms;
@@ -6,7 +8,7 @@
   top: 0;
   position: sticky;
 
-  @media (max-width: 37.5rem) {
+  @media (max-width: 45rem) {
     padding: 0px 20px;
   }
 
@@ -33,7 +35,7 @@
     }
     height: 60px;
 
-    @media (max-width: 37.5rem) {
+    @media (max-width: 45rem) {
       height: 40px;
     }
   }

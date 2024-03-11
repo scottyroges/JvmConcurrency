@@ -4,38 +4,44 @@
   margin-bottom: 20px;
   color: var(--color-tertiary);
 
-  @media (max-width: 37.5rem) {
+  @media (max-width: 45rem) {
     display: none;
   }
 }
 
 .wrapper {
   display: flex;
-  gap: 60px;
+  width: 100%;
 
-  @media (max-width: 37.5rem) {
+  @media (max-width: 45rem) {
     flex-direction: column;
     align-items: center;
     gap: 30px;
   }
 }
 
+.spacer {
+  min-width: 20px;
+  flex-basis: 100px;
+  flex-shrink: 99999;
+
+  @media (max-width: 45rem) {
+    display: none;
+  }
+}
+
 .markdown {
-  padding-left: 50px;
-  width: 850px;
+  flex-basis: 850px;
+  min-width: 0px;
 
-  @media (max-width: 37.5rem) {
-    padding-left: 0;
+  @media (max-width: 45rem) {
     width: 100%;
-
-    pre {
-      overflow: auto;
-    }
   }
   pre {
     background-color: var(--color-secondary);
     padding: 10px;
     border-radius: 10px;
+    overflow: auto;
   }
   * {
     margin-bottom: 15px;

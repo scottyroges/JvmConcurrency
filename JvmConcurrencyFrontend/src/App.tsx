@@ -13,10 +13,15 @@ function App() {
 
       <main>
         <div className={styles.wrapper}>
-          <h1 className={styles.heading}>JVM Concurrency</h1>
-          <Scenarios selectedScenarioId={selectedScenarioId} />
-          <Details selectedScenarioId={selectedScenarioId} />
-          <Analysis selectedScenarioId={selectedScenarioId} />
+          <div className={styles.relative}>
+            <h1 className={styles.heading}>JVM Concurrency</h1>
+            <a href="#analysis" className={styles.jumpToAnalysis}>
+              Jump to <span>Analysis</span>
+            </a>
+            <Scenarios selectedScenarioId={selectedScenarioId} />
+            <Details selectedScenarioId={selectedScenarioId} />
+            <Analysis selectedScenarioId={selectedScenarioId} />
+          </div>
         </div>
         <div className={styles.mobileWrapper}>
           <h1 className={styles.heading}>JVM Concurrency</h1>
