@@ -1,0 +1,110 @@
+.wrapper {
+  grid-area: timeline;
+  overflow: hidden;
+  position: relative;
+}
+
+.timeline-graph {
+  overflow: auto;
+  /* border: 1px solid var(--color-grey-700); */
+  background-color: var(--color-secondary-dark);
+  border-radius: 10px;
+  height: 100%;
+  display: grid;
+  gap: calc(24px * var(--zoom-scale-factor)) 0px;
+}
+
+.fallback {
+  background-color: var(--color-secondary-dark);
+  border-radius: 10px;
+  display: grid;
+  width: 100%;
+  height: 100%;
+}
+
+.zoom {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+.os-thread {
+  background-color: var(--color-graph-3-dark);
+  /* align-self: stretch; */
+
+  &.os-active {
+    background-color: var(--color-graph-3);
+  }
+}
+
+.message-wrapper {
+  display: grid;
+  padding: calc(10px * var(--zoom-scale-factor));
+  /* align-self: stretch; */
+}
+
+.message {
+  margin-bottom: calc(5px * var(--zoom-scale-factor));
+  --message-color: var(--color-graph-0-dark);
+  background-color: var(--message-color);
+}
+
+.message-text {
+  font-family: monospace;
+  font-size: calc(0.75rem * var(--zoom-scale-factor));
+  font-weight: 700;
+  background-color: var(--message-color);
+  color: var(--color-grey-1000);
+  padding: 3px;
+
+  /* &:hover, */
+  &:focus,
+  &.message-active {
+    --message-color: var(--color-graph-0);
+    color: var(--color-grey-300);
+  }
+}
+
+.virtual-thread-wrapper {
+  border: calc(10px * var(--zoom-scale-factor)) solid var(--message-color);
+
+  &.vt-thread-non-active {
+    border-color: var(--color-graph-2-dark);
+
+    /* &:hover, */
+    &:focus,
+    &.vt-active {
+      border-color: var(--color-graph-2);
+    }
+  }
+}
+
+.coroutine-wrapper {
+  border: calc(10px * var(--zoom-scale-factor)) solid var(--message-color);
+
+  &.coroutine-non-active {
+    border-color: var(--color-graph-1-dark);
+
+    /* &:hover, */
+    &:focus,
+    &.c-active {
+      border-color: var(--color-graph-1);
+    }
+  }
+}
+
+.time-mark {
+  font-size: calc(1rem * var(--zoom-scale-factor));
+  width: min-content;
+  transform: translateX(-40%);
+  color: var(--color-tertiary);
+}
+
+.markings {
+  align-self: stretch;
+  justify-self: stretch;
+  pointer-events: none;
+  &:not(:last-of-type) {
+    border-right: dashed 1px var(--color-white);
+  }
+}

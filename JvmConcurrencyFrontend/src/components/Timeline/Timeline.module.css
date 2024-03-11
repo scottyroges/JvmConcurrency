@@ -1,0 +1,21 @@
+.wrapper {
+  display: grid;
+  grid-template-areas:
+    "timeline timeline side-panel"
+    "info-box info-box side-panel";
+  gap: 16px;
+  grid-template-rows: minmax(auto, 600px) minmax(auto, 200px);
+  grid-template-columns: 1fr 1fr auto;
+
+  @media (max-width: 37.5rem) {
+    grid-template-areas:
+      "side-panel"
+      "timeline"
+      "info-box";
+    grid-template-columns: 100%;
+    grid-template-rows: minmax(auto, 200px) minmax(auto, 400px) minmax(
+        min-content,
+        0px
+      );
+  }
+}

@@ -1,0 +1,44 @@
+In many applications it is common to have to reach outside of our local execution for additional resources. 
+This might includes network requests to an API, reading a file off disk, or running a query against a database, amoung many others. 
+These types of operations are generally considered I/O or "Input/Output". In general when our program has do one of these
+I/O operations, the computer we are executing on will reach out to this other resource, waiting for a response so it can continue
+with the rest of its programming.
+
+In this example we can see what this might look like. We are running an application that serves up an API for
+a microservice. As part of the requests that come in, we need to make several network calls to another microservice.
+These network calls are I/O operations. For simplicty, the microservice we are hitting takes in a `delay` parameter
+and will wait for that amount of time in milliseconds before returning. This allows us to simulate real life calls to
+an API.
+
+Let's take a naive approach to this. We can assume the controller for our endpoint has already been set up and the call that makes a
+network request has a slim wrapper to hide the use of any http library. These classes have also been configured
+to log when they start and end so we can easily trace through the execution. What's left to write is a method hooking these all together.
+
+Our simple code might look something like this:
+
+```
+fun javaNetworkCallsSameThread(): String {
+    ThreadLogger.info("Service.javaNetworkCallsSameThread", "start")
+    javaHttpNetworkCall.execute(delay = 1400)
+    javaHttpNetworkCall.execute(delay = 500)
+    ThreadLogger.info("Service.javaNetworkCallsSameThread", "end")
+    return "success"
+}
+```
+
+This looks fairly straight forward. We enter into the method and log our start call. Then we execute our first
+http call which will return after 1400 milliseconds. But what happens now?
+
+Well, by default our program haults all execution and needs to wait for a response before it continues. Our application is blocked until the http call returns (which in this case
+will come back after 1400ms). Once we get that response, now we can execute the next http call. This one will take
+500ms. We wait for that one to return, log our end statement and return.
+
+In the timeline we can see the various log statements and when they are executed. We can also see that after
+the http call starts, there is no other activity happening until that call returns.
+
+This is obviously not ideal. While we are waiting shouldn't we be able to start our other http? Our machine executing the
+code is just sitting there waiting, when it could be handling other activity. Our current execution time
+is 1400ms + 700ms = 2100ms, but the majority of it is spent waiting. In a real world application this would
+cause severe scaling issues and really poor performance.
+
+Not to worry though, the next [scenario](/threads) shows how we can parallelize this.

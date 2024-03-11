@@ -1,0 +1,66 @@
+Let's imagine that instead of just making two http calls, like in our previous example,
+we instead need to make 20 http calls to other microservices.
+
+Lets follow the same pattern as before and spin up a thread for each call so that we just
+execute them all in parallel.
+
+We'll use the same executor from before.
+```
+@Configuration
+class UnboundThreadPoolExecutor {
+    @Bean("unboundPoolExecutor")
+    fun unboundPoolExecutor(): ExecutorService {
+        return Executors.newCachedThreadPool()
+    }
+}
+```
+
+```
+fun javaNetworkCallsExecutorManyCallsFixedPool(token: String): String {
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsFixedPool", "start")
+    val context = MDC.getCopyOfContextMap()
+    val futures = mutableListOf<Future<*>>()
+    for (i in 1..20) {
+        futures.add(
+            fixedExecutorService.submit {
+                MDC.setContextMap(context)
+                javaHttpNetworkCall.execute(Random.nextLong(700L, 1400L), token)
+            },
+        )
+    }
+    futures.forEach { it.get() }
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsFixedPool", "end")
+    return "success"
+}
+```
+
+This looks like it works just fine. Our request will only take as long as the slowest http
+call. Each call is happening in its own thread so none of them are blocking each other.
+
+So what's the problem?
+
+Well threads are expensive. What I mean by that is that they take up valuable resources
+on the computer executing our program. Like we said before, these threads are an operating system
+resource that contain all the information to execute a set of instructions. It takes the OS some time
+to create each thread, which could introduce latency in our application. It also requires a sizable
+amount of memory to store all the necessary information for execution. In addition to that, switching between 
+lots of threads can also be taxing on our CPU.
+
+So in this example, one single request to our API is using 21 threads. If we ever expect our application
+to handle any amount of volume, the number of threads needed will quickly become huge. This isn't insurmountable,
+we could throw more memory and processing power at the problem to scale vertically. Modern applications can have incredibly large
+amounts of memory and lots of CPU cores. We could also try scaling horizontally by running multiple instances of our
+application. Both of these solutions would work, but I could imagine the cost of running our application
+becoming pretty pricey.
+
+But there is a far bigger danger here. In this example we are using an unbounded thread pool where we create a new
+thread for every task we want to execute. If our application is under heavy load it will keep trying
+to create these threads until it reaches the limits of the machine its executing on. And when it reaches those
+limits, something has to give. Either our application will crash with an `OutOfMemoryException` or the OS/framework
+we are using will throttle us causing timeouts for our requests. Either way, we are going to have some
+unhappy clients.
+
+Ok ok, I've convinced you not to just create an unbounded number of threads. Are there other strategies?
+
+Lets explore a [fixed thread pool](/fixed-thread-pool).
+

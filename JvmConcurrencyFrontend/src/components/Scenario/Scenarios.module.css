@@ -1,0 +1,47 @@
+.scenarios-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 41px;
+  overflow: auto;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-grey-500);
+
+  @media (max-width: 37.5rem) {
+    display: none;
+  }
+}
+
+.box {
+  display: block;
+  min-width: 250px;
+  height: 75px;
+  border: 1px solid var(--color-grey-100);
+  border-radius: 10px;
+  background-color: var(--color-secondary);
+  color: var(--color-grey-800);
+  font-weight: var(--font-weight-body-bold);
+  font-size: calc(16rem / 16);
+  text-decoration: none;
+
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0px 5px;
+    width: 100%;
+    text-align: center;
+    height: 100%;
+  }
+
+  &:hover {
+    background-color: var(--color-grey-800);
+    color: var(--color-black);
+    cursor: pointer;
+  }
+}
+
+.selected {
+  border: 2px solid var(--color-highlight);
+  background-color: var(--color-grey-800);
+  color: var(--color-black);
+}
