@@ -1,7 +1,7 @@
 A thread is an operating system resource and is short for "thread of execution". A thread contains
 the data, code, and any other resources needed for the CPU to execute a set of instructions. Modern day computers
-have multiple processors, which means each CPU can execute a different thread at the same time. But the number of threads
-running in parallel is not limited to the number of cores. How is this possible?
+have multiple processors, which means each CPU can execute a different thread simultaneously. But the number of threads
+running in parallel is not limited to the number of cores on a machine. How is this possible?
 
 Well our computers can give the illusion of running threads in parallel on the same CPU by executing some of the code
 in a thread and then swapping out another thread and executing some of its instructions and then swapping back. It does this so fast that
@@ -9,13 +9,13 @@ it gives the appearance of running in parallel, which is quite amazing. How it d
 is very much platform dependent and a topic for another discussion, but suffice it to say that we have traditionally
 had very little control over this.
 
-So taking out example from scenario 1, let execute each of our http calls in its own thread to run them in parallel.
+So taking out example from the previous scenario, let execute each of our http calls in its own thread to run them in parallel.
 
 In the JVM we are given an `ExecutorService` interface that provides a layer of abstraction on creating and managing OS level threads.
 A simple version is shown below. 
 
 (If you aren't familiar with the annotations like `@Configuration` or `@Bean`, these are from [spring](https://spring.io/), a robust and battle tested
-framework for backend application servers. It's beyond the scope of this topic, but would encourage anyone using the JVM for
+framework for backend application servers. It's beyond the scope of this topic, but I would encourage anyone using the JVM for
 backend development to give it a shot.) 
 
 ```
@@ -49,12 +49,16 @@ fun javaNetworkCallsExecutor(token: String): String {
 }
 ```
 
-Now we are starting each http call in its own thread. Looking at the timeline we now see 3 different threads (the large blue bars our
+Now we are starting each http call in its own thread. Our executor returns a `Future`, which basically means that our code will continue to execute
+and when we are ready for the response we can wait for it. This is what allows us to execute the multiple calls without blocking.
+Looking at the timeline we now see 3 different threads (the large blue bars our
 log messages are sitting on). Select each one to see more information about what it was responsible for executing.
 
-The first thread is the one that is handling the API request to our server. But we can see that the logs for
-the http calls are now each in their own thread. We can also see the the "start" logs for each http call is happening at the same time. The first one still finishes after 1400ms, but our second one which only takes 700ms from the start.
-Our total time is no longer these numbers added together, but instead is only as long as the slowest call.
+The first thread is the one that is handling the API request to our server, we'll talk more about these later on. But we can see that the logs for
+the http calls are now each in their own thread. We can also see the the "start" logs for each http call is happening at the same time. The first one still finishes after 1400ms, 
+but our second is finishing in only 700ms. No time is wasted sitting around for that first long call to finish. Instead of our two calls kick off at the same
+time. Before we return our function, we execute `future.get()` on each one so that we can get both responses. But now our total time is no longer these numbers added together, 
+but instead is only as long as the slowest call.
 
 That's it were done, right? Time to celebrate how great it is that we have concurred concurrency!
 

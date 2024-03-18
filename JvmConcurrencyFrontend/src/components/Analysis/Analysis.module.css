@@ -52,10 +52,21 @@
 
   a {
     color: var(--color-highlight);
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  ul {
+    list-style-type: initial;
+    list-style-position: inside;
+    color: var(--color-tertiary);
   }
 
   p {
     text-align: justify;
+    font-size: calc(16rem / 16);
 
     code {
       background-color: var(--color-secondary);

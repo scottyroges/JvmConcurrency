@@ -33,12 +33,12 @@ Well, by default our program haults all execution and needs to wait for a respon
 will come back after 1400ms). Once we get that response, now we can execute the next http call. This one will take
 500ms. We wait for that one to return, log our end statement and return.
 
-In the timeline we can see the various log statements and when they are executed. We can also see that after
+In the timeline, we can see the various log statements and when they are executed. We can also see that after
 the http call starts, there is no other activity happening until that call returns.
 
 This is obviously not ideal. While we are waiting shouldn't we be able to start our other http? Our machine executing the
 code is just sitting there waiting, when it could be handling other activity. Our current execution time
-is 1400ms + 700ms = 2100ms, but the majority of it is spent waiting. In a real world application this would
+is atleast 1400ms + 700ms = 2100ms, but the majority of it is spent waiting. In a real world application this would
 cause severe scaling issues and really poor performance.
 
 Not to worry though, the next [scenario](/threads) shows how we can parallelize this.

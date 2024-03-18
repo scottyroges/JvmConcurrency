@@ -1,6 +1,91 @@
-Uh oh. This part hasn't been completed yet, sorry about that! 
+So virtual threads are the new kids on the block. They have been an experimental feature for the last few years,
+but as of JDK 21 they have officially been released.
 
-Check back soon to get the full analysis.
+Before we jump into what virtual threads are, lets take a look at our timeline. Looking at our threads tab
+we see something interesting. There are 4 threads, 3 of which have the prefix "ForkJoinPool-1". Looking at the
+execution of our code, we can see these threads. But something interesting is happening. Each thread is somehow
+executing multiple of our http calls at the same time! With only 3 threads all 20 of our http calls are running in
+parallel!
 
-But in the meantime feel free to look through the execution timeline and try to see if you can understand what is
-happening here.
+And here is where the magic of virtual threads come into play.
+
+As you probably recall from our conversation on [threads](/threads), a thread is an OS level resource. The JVM just
+gives us a layer of abstraction for us to create and use them. But with virtual threads, this is no longer the case.
+With virtual threads, they are now managed all within the JVM itself.
+
+This solves a lot of the issues we had with threads before. They now require significantly less memory and overhead
+to start up. In fact, we can spin up _millions_ of virtual threads even on modest machines.
+
+But how is this all working? Clearly we still have some real OS threads as we can see above.
+
+Basically the way virtual threads work is by having a few `carrier threads`. These carrier threads are the OS threads that
+we see above and what we have been looking at previously. By default the number of carrier threads is equal to the number
+of CPUs on your machine, but this number can be tuned if needed using the JVM property `jdk.virtualThreadScheduler.parallelism`.
+The max number is 256.
+
+So we have these OS threads sitting and waiting just like any other thread pool. Then our application creates a virtual thread.
+The JVM manages this task only within the heap. It then "mounts" that task onto one of the carrier threads. Once a virtual
+thread is mounted, the carrier thread will begin execution of the task.
+
+Now heres the cool part. When the carrier thread hits some kind of blocking code, something that would mark the thread as blocked,
+the virtual thread scheduler "unmounts" this virtual thread. Once we unmount, the carrier thread is now free to execute some other
+virtual thread. The original virtual thread will just sit off to the side until it is no longer block. When that happens,
+the scheduler will queue it up to be "mounted" again by a carrier thread so that it can continue execution. In this way
+our carrier threads are not blocked themselves. They are constantly just switching execution between tasks, swapping out blocked
+ones for ones that are ready for execution.
+
+So lets see this in action.
+
+Again, this is cutting edge as of Java 21, so the following code will only work if you have upgraded to that (or if you are running
+a previous version in preview mode).
+
+Lets first create our virtual thread pool.
+```
+@Bean("virtualPoolExecutor")
+fun virtualPoolExecutor(): ExecutorService {
+    return Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("my-pool-", 0).factory())
+}
+```
+
+Nothing too crazy here. The JVM Executor provides us with a new method called `newThreadPerTaskExecutor`. We optionally
+can provide it with a thread factory, but this is only really used for logging purposes so that we can give our virtual threads
+a specific name.
+
+Our code looks almost exactly as it did before, except we swap out our fixed thread pool for the virtual thread pool.
+
+```
+fun javaNetworkCallsExecutorManyCallsVirtualPool(token: String): String {
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsVirtualPool", "start")
+    val context = MDC.getCopyOfContextMap()
+    val futures = mutableListOf<Future<*>>()
+    for (i in 1..20) {
+        futures.add(
+            virtualExecutorService.submit {
+                MDC.setContextMap(context)
+                javaHttpNetworkCall.execute(Random.nextLong(700L, 1400L), token)
+            },
+        )
+    }
+    futures.forEach { it.get() }
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsVirtualPool", "end")
+    return "success"
+}
+```
+
+In our timeline above, click on the "Virtual Threads" tab. We can see our 20 requests each spun up their own virtual thread.
+Now click one of the virtual threads, such as "my-pool-46". Here we can see exactly what we are talking about above. For
+"my-pool-46", the http call starts execution on "ForkJoinPool-1-worker-1". But the end log is executing on "ForkJoinPool-1-worker-2"!
+So the virtual thread was mounted, hit a blocking call and unmounts so that other virtual threads can execute. Then when the http
+call returns "my-pool-46" is mounted again to finish its execution. This mounting can occur on any thread, since all the information
+needed to execute the virtual thread is kept within the JVM.
+
+There is obviously a lot going on here and what I have put down is just an overview. Here's some great resources that I used
+when learning about virtual threads myself.
+- [Ycrash](https://blog.ycrash.io/2023/01/20/is-java-virtual-threads-lightweight/)
+- [Rock the JVM](https://blog.rockthejvm.com/ultimate-guide-to-java-virtual-threads/)
+- [InfoQ](https://www.infoq.com/articles/java-virtual-threads/)
+
+For those of you familiar with Kotlin, you maybe be asking yourself "Isn't this a lot like coroutines?"
+
+Great question and that was one of the primary motivations for me putting together this demonstration site. Lets explore how 
+[coroutines](/coroutines-non-blocking) work and then how they compare with virtual threads.

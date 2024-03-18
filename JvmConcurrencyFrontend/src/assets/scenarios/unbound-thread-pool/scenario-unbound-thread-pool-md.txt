@@ -15,6 +15,9 @@ class UnboundThreadPoolExecutor {
 }
 ```
 
+And our code looks fairly similar to before. Instead of manually executing two different calls,
+we instead create a loop to execute 20 calls, each with a random amount of delay between 700ms and 1200ms.
+
 ```
 fun javaNetworkCallsExecutorManyCallsFixedPool(token: String): String {
     ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsFixedPool", "start")
@@ -34,7 +37,7 @@ fun javaNetworkCallsExecutorManyCallsFixedPool(token: String): String {
 }
 ```
 
-This looks like it works just fine. Our request will only take as long as the slowest http
+This looks like it works just fine in our timeline. Our request will only take as long as the slowest http
 call. Each call is happening in its own thread so none of them are blocking each other.
 
 So what's the problem?
@@ -47,11 +50,11 @@ amount of memory to store all the necessary information for execution. In additi
 lots of threads can also be taxing on our CPU.
 
 So in this example, one single request to our API is using 21 threads. If we ever expect our application
-to handle any amount of volume, the number of threads needed will quickly become huge. This isn't insurmountable,
+to handle any amount of load, the number of threads needed will quickly become huge. This isn't insurmountable,
 we could throw more memory and processing power at the problem to scale vertically. Modern applications can have incredibly large
 amounts of memory and lots of CPU cores. We could also try scaling horizontally by running multiple instances of our
-application. Both of these solutions would work, but I could imagine the cost of running our application
-becoming pretty pricey.
+application side by side with a load balancer in front of it. Both of these solutions would work, but I could imagine 
+the cost of running our application becoming pretty pricey.
 
 But there is a far bigger danger here. In this example we are using an unbounded thread pool where we create a new
 thread for every task we want to execute. If our application is under heavy load it will keep trying

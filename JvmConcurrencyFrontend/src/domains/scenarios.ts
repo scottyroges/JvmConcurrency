@@ -95,18 +95,6 @@ const scenarios: ScenarioType[] = [
     markdown: scenarioVirtualThreadPoolMarkdown,
   },
   {
-    id: "coroutines-blocking",
-    name: "Coroutines - Blocking",
-    description: [
-      "controller - OS threads",
-      "client - java http client blocking",
-      "network call in parallel",
-      "coroutines",
-    ],
-    file: scenarioCoroutinesBlocking,
-    markdown: scenarioCoroutinesBlockingMarkdown,
-  },
-  {
     id: "coroutines-non-blocking",
     name: "Coroutines - Non Blocking",
     description: [
@@ -117,6 +105,18 @@ const scenarios: ScenarioType[] = [
     ],
     file: scenarioCoroutinesNonBlocking,
     markdown: scenarioCoroutinesNonBlockingMarkdown,
+  },
+  {
+    id: "coroutines-blocking",
+    name: "Coroutines - Blocking",
+    description: [
+      "controller - OS threads",
+      "client - java http client blocking",
+      "network call in parallel",
+      "coroutines",
+    ],
+    file: scenarioCoroutinesBlocking,
+    markdown: scenarioCoroutinesBlockingMarkdown,
   },
   {
     id: "ktor",

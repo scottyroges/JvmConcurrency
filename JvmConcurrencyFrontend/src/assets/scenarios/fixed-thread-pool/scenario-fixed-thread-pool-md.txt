@@ -1,6 +1,73 @@
-Uh oh. This part hasn't been completed yet, sorry about that! 
+So unbound thread pools are bad. But we may have come across a similar problem before. If resources are expensive to create
+and manage, why not create them all upfront and have our application switch between them as they become free. If you have worked
+with a database before, you may be very familiar with this when it comes to database connections. We don't want to create them
+on the fly, we want them to be ready for use as soon as they are needed with no overhead.
 
-Check back soon to get the full analysis.
+That same concept can be applied to threads. With a fixed thread pool, we can select a specific number of threads we want in our
+pool. The JVM will create those threads at start up and the ExecutorService will take care of managing the states of those threads. When a task
+is executing on a thread, it will be busy. If another task comes in during this time, the ExecutorService will 
+see if it has another thread that is not busy for that task to execute on. If it does, then execution begins on that thread and
+it is also marked busy. But if no threads are available, then our task will be queue up, waiting for the next available thread. When
+a task finishes, the thread it was executing on gets marked as free again and the ExecutorService pops off the top of the queue and 
+beging executing that waiting task on the newly available thread.
 
-But in the meantime feel free to look through the execution timeline and try to see if you can understand what is
-happening here.
+Here's one example of configuring a fixed thread pool with 10 threads.
+```
+@Bean("fixedPoolExecutor")
+fun fixedPoolExecutor(): ExecutorService {
+    return Executors.newFixedThreadPool(10)
+}
+```
+
+We will again be executing 20 http calls in the same way we did with the unbound thread pool.
+
+```
+fun javaNetworkCallsExecutorManyCallsFixedPool(token: String): String {
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsFixedPool", "start")
+    val context = MDC.getCopyOfContextMap()
+    val futures = mutableListOf<Future<*>>()
+    for (i in 1..20) {
+        futures.add(
+            fixedExecutorService.submit {
+                MDC.setContextMap(context)
+                javaHttpNetworkCall.execute(Random.nextLong(700L, 1400L), token)
+            },
+        )
+    }
+    futures.forEach { it.get() }
+    ThreadLogger.info("Service.javaNetworkCallsExecutorManyCallsFixedPool", "end")
+    return "success"
+}
+```
+
+Looking at the threads tab, we can see we are indeed only executing on 10 threads. So the concerns we had before about the overhead
+of creating new threads and possibly running out of memory are gone. But now we have a new problem. Looking at our execution, we are
+no longer getting the same level of parallelism that we had before. Each of our 10 threads kicks off an http call, but when the 11th
+call goes to execute there are no free threads. It must wait until one of the other http call finishes and then it can begin execution.
+This is still better than not using any concurreny at all, but its clearly not going to be as fast as what we had when we were able to
+execute 20 calls simultaneously.
+
+Here's another interesting thing about fixed thread pools. We mentioned above about tasks getting queue up and we can see that in our
+example. 20 tasks get submitted, 10 can execute immediately and the other 10 are put into the queue to start waiting. But what if another
+call comes in to our endpoint. That call is also going to submit 20 http calls. So now we have the original 10 tasks still executing,
+the other 10 tasks from the first request still waiting, and now an additional 20 tasks from the second request waiting. As more an more
+requests come in, more and more tasks get queue up.
+
+Our queue can only be so long as it is also bound to the memory that we have available to us in the JVM heap. And if our tasks are not
+executing as fast as new tasks are being submitted to our queue, eventually we will reach the limit of our queue. And when this happens
+we have to decide what we want to do. By default, the JVM will start rejecting tasks, causing an uptick in errors to our clients
+but at least our application is still in a semi functional state. Another option might be to start spinning up some more threads
+to try and catch up on our queue. This might help cover us for a bit, but the possibly that the number of tasks coming in too fast
+for our pool to execute still exists.
+
+And here lies the problem with threads. No matter what we do we have to make some compromise. A lot of time can be spent tuning the
+various thread pools in an application. Finding the perfect number of threads, or adding in special logic to handle when our queue
+length gets too large.
+
+And for many years this was all we could do. Application engineers would run load test simulations with different loads, coming up
+with numbers for their thread pools that got them the most performance, while also trying to keep the costs of running their application
+down.
+
+But in recent years some new options have arrived to the JVM ecosystem that could change how we view concurrency.
+
+Here comes [virtual threads](/virtual-thread-pool).
