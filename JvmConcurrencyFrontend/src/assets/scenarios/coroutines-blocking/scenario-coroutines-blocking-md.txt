@@ -1,6 +1,88 @@
-Uh oh. This part hasn't been completed yet, sorry about that! 
+Coroutines were Kotlin's answer to the concurrency problems we saw with [unbound](/unbound-thread-pool) 
+and [fixed](/fixed-thread-pool) thread pools. They were released in 2018, so a few years before virtual threads were even
+available as preview feature in Java. The folks at Jetbrains (the people behind Kotlin)
+saw the same issues we covered previosuly: threads are expensive to create and manage and a lot of times they are 
+left just waiting for an I/O operation instead of actually executing code.
 
-Check back soon to get the full analysis.
+So very similar to virtual threads, they came up with a way to make this more efficient. They would have a dedicated
+thread pool for execution, but then manage what each of those threads is executing to ensure these resources
+are being utilized efficiently.
 
-But in the meantime feel free to look through the execution timeline and try to see if you can understand what is
-happening here.
+Let's take a look at our code for coroutines.
+
+```
+fun javaNetworkCallsManyCallsCoroutinesBlocking(token: String): String {
+    return runBlocking(Executors.newFixedThreadPool(2).asCoroutineDispatcher() + MDCContext()) {
+        ThreadLogger.infoCoroutine("Service.javaNetworkCallsManyCallsCoroutinesBlocking", "start")
+        val jobs = mutableListOf<Deferred<*>>()
+        for (i in 1..20) {
+            jobs.add(
+                async(MDCContext()) {
+                    javaHttpNetworkCall.execute(Random.nextLong(700L, 1400L), token)
+                },
+            )
+        }
+        jobs.awaitAll()
+        ThreadLogger.infoCoroutine("Service.javaNetworkCallsManyCallsCoroutinesBlocking", "end")
+        "success"
+    }
+}
+```
+
+There's a few key differences here. One is this `runBlocking` function. In order to execute code using coroutines,
+you must be executing on that pool of shared threads we mentioned above. `runBlocking` allows us to
+go from our normal execution and switch to code that will work with coroutines. One major thing to note with `runBlocking` 
+is that it will block the thread that it's currently on until the coroutine function is finished. In a lot of cases, 
+blocking that thread will cause a bottleneck and negate the gains we might get from coroutines. So its very important 
+to limit `runBlocking` to the very edges of our system (controllers, message consumers, etc.).
+
+Within `runBlocking` we need to define the coroutine context. This context allows us to set some configurations for the
+coroutines that will execute within the function. In our example we are setting a coroutine dispatcher and also using
+the `MDCContext` to copy over some logging data from our original thread.
+
+Let's talk a bit about coroutine dispatchers. You can basically think of them as the underlying thread pool that will be used
+to execute our coroutine code. Kotlin comes with a few built in dispatchers for different use cases.
+
+Dispatchers.Default
+- Typically used for CPU intensive tasks. The number of threads is equal to the number of cores on your machine.
+
+Dispatchers.Main
+- Used for UI based applications (android, swing, etc.) to execute a task on the main UI thread. Use with caution
+for UI applications since running tasks on the main thread can block the user from interactions until the blocking task 
+completes.
+
+Dispatchers.IO
+- Should be used for blocking tasks. Its default limit is 64 threads, though it will only approach this limit if needed. This is
+probably the most used dispatcher since we can just let the coroutine libraries take care of all the management of this pool.
+
+Finally for developers who want more fine grained control of the thread pool being used, we can convert any thread pool 
+into a dispatcher, just like we are doing above.
+
+```
+Executors.newFixedThreadPool(2).asCoroutineDispatcher()
+```
+
+Here we are creating a fixed thread pool of size 2 (more on that in a bit) and then using the `asCoroutineDispatcher` method
+to convert it to a dispatcher.
+
+The last big difference in our coroutine code is the use of `async`. This function allows us to pass in a function to execute
+within a coroutine and it will return a `Deferred` object. It's very similar to a `Future` in the sense that it allows execution
+to continue, passing the task to our dispatcher, and then later on waiting on the result whenever it returns. For times when 
+you don't care about the results but still want our task to be executed asynchronously, we can use `launch` instead. This operates
+the same as `async`, but with a `Job` returned instead of `Deferred` and doesn't allow us to get any data from the task that was
+executed.
+
+Ok, so now let's look at our timeline.
+
+We can see 3 OS threads. One for the http request and then two coming from the fixed pool that we created. If we click on the
+coroutine tab, we can see we have a bunch of coroutines created, one for each http call which is what we want. But wait, this
+doesn't look very parallel. In fact it looks the same as our [fixed thread pool](/fixed-thread-pool) example, except in this
+case we only have 2 threads!
+
+Aren't coroutines supposed to address these problems?
+
+There is one crucial part of coroutines that is missing in our example that is preventing us from executing our calls in parallel
+and it is one of the major differences between coroutines and virtual threads.
+
+[Read on](/coroutines-non-blocking) to see how we can get our desired parallelism.
+

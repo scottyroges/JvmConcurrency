@@ -16,10 +16,10 @@ With virtual threads, they are now managed all within the JVM itself.
 This solves a lot of the issues we had with threads before. They now require significantly less memory and overhead
 to start up. In fact, we can spin up _millions_ of virtual threads even on modest machines.
 
-But how is this all working? Clearly we still have some real OS threads as we can see above.
+But how is this all working? Clearly we still have some real OS threads as we can see in our timeline.
 
 Basically the way virtual threads work is by having a few `carrier threads`. These carrier threads are the OS threads that
-we see above and what we have been looking at previously. By default the number of carrier threads is equal to the number
+we see in our timeline and are the same as what we have been looking at previous examples. By default the number of carrier threads is equal to the number
 of CPUs on your machine, but this number can be tuned if needed using the JVM property `jdk.virtualThreadScheduler.parallelism`.
 The max number is 256.
 

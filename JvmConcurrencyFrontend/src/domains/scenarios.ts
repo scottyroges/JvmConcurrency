@@ -5,7 +5,6 @@ import scenarioFixedThreadPool from "@assets/scenarios/fixed-thread-pool/scenari
 import scenarioVirtualThreadPool from "@assets/scenarios/virtual-thread-pool/scenario-virtual-thread-pool.txt";
 import scenarioCoroutinesBlocking from "@assets/scenarios/coroutines-blocking/scenario-coroutines-blocking.txt";
 import scenarioCoroutinesNonBlocking from "@assets/scenarios/coroutines-non-blocking/scenario-coroutines-non-blocking.txt";
-import scenarioKtor from "@assets/scenarios/ktor/scenario-ktor.txt";
 import scenarioRequestThreadPool from "@assets/scenarios/request-thread-pool/scenario-request-thread-pool.txt";
 import scenarioSpringBootVirtualThreads from "@assets/scenarios/spring-boot-virtual-threads/scenario-spring-boot-virtual-threads.txt";
 import scenarioVirtualThreadsAndCoroutines from "@assets/scenarios/virtual-threads-and-coroutines/scenario-virtual-threads-and-coroutines.txt";
@@ -18,7 +17,6 @@ import scenarioFixedThreadPoolMarkdown from "@assets/scenarios/fixed-thread-pool
 import scenarioVirtualThreadPoolMarkdown from "@assets/scenarios/virtual-thread-pool/scenario-virtual-thread-pool-md.txt";
 import scenarioCoroutinesBlockingMarkdown from "@assets/scenarios/coroutines-blocking/scenario-coroutines-blocking-md.txt";
 import scenarioCoroutinesNonBlockingMarkdown from "@assets/scenarios/coroutines-non-blocking/scenario-coroutines-non-blocking-md.txt";
-import scenarioKtorMarkdown from "@assets/scenarios/ktor/scenario-ktor-md.txt";
 import scenarioRequestThreadPoolMarkdown from "@assets/scenarios/request-thread-pool/scenario-request-thread-pool-md.txt";
 import scenarioSpringBootVirtualThreadsMarkdown from "@assets/scenarios/spring-boot-virtual-threads/scenario-spring-boot-virtual-threads-md.txt";
 import scenarioVirtualThreadsAndCoroutinesMarkdown from "@assets/scenarios/virtual-threads-and-coroutines/scenario-virtual-threads-and-coroutines-md.txt";
@@ -95,18 +93,6 @@ const scenarios: ScenarioType[] = [
     markdown: scenarioVirtualThreadPoolMarkdown,
   },
   {
-    id: "coroutines-non-blocking",
-    name: "Coroutines - Non Blocking",
-    description: [
-      "controller - OS threads",
-      "client - java http client non blocking",
-      "network call in parallel",
-      "coroutines",
-    ],
-    file: scenarioCoroutinesNonBlocking,
-    markdown: scenarioCoroutinesNonBlockingMarkdown,
-  },
-  {
     id: "coroutines-blocking",
     name: "Coroutines - Blocking",
     description: [
@@ -119,16 +105,16 @@ const scenarios: ScenarioType[] = [
     markdown: scenarioCoroutinesBlockingMarkdown,
   },
   {
-    id: "ktor",
-    name: "Ktor",
+    id: "coroutines-non-blocking",
+    name: "Coroutines - Non Blocking",
     description: [
       "controller - OS threads",
-      "client - ktor http client suspending",
+      "client - java http client non blocking",
       "network call in parallel",
       "coroutines",
     ],
-    file: scenarioKtor,
-    markdown: scenarioKtorMarkdown,
+    file: scenarioCoroutinesNonBlocking,
+    markdown: scenarioCoroutinesNonBlockingMarkdown,
   },
   {
     id: "request-thread-pool",
